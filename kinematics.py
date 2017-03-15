@@ -14,11 +14,6 @@ import moveit_commander
 import moveit_msgs.msg
 
 
-
-
-
-
-
 class arm_kinematics:
 	
 	
