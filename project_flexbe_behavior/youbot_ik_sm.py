@@ -7,12 +7,13 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from project_flexbe_states.JointValues import JointValuePub
-from project_flexbe_states.IK_Solver_Trajectory import IKSolverTrajectory
-from project_flexbe_states.GripperCheck import GripperStateEffort
-from project_flexbe_states.publish_pose_state_IK import PublishPoseStateIK
-from project_flexbe_states.GripperWidth import GripperStateWidth
-from project_flexbe_states.IK_Solver import IKSolver
+from flexbe_states.JointValues import JointValuePub
+from flexbe_states.publish_pose_state_IK import PublishPoseStateIK
+from flexbe_states.IK_Solver import IKSolver
+from flexbe_states.GripperWidth import GripperStateWidth
+from flexbe_states.IK_Solver_Trajectory import IKSolverTrajectory
+from flexbe_states.GripperCheck import GripperStateEffort
+from flexbe_behaviors.test_sm import TestSM
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -36,6 +37,7 @@ class YoubotIKSM(Behavior):
 		# parameters of this behavior
 
 		# references to used behaviors
+		self.add_behavior(TestSM, 'Test')
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
@@ -47,7 +49,7 @@ class YoubotIKSM(Behavior):
 
 
 	def create(self):
-		pose_cube = "/box_pose"
+		pose_cube = "/box_pose_footprint"
 		inclination = 1.57
 		height_above = 0
 		height_grasp = 30
@@ -65,7 +67,7 @@ class YoubotIKSM(Behavior):
 		rotation_ee = 0
 		target_pose_above = [-0.025, 0.0, 0.155]
 		inclination_ee = 1.57
-		# x:372 y:266, x:30 y:654
+		# x:51 y:467, x:48 y:357
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
 		# Additional creation code can be added inside the following tags
@@ -75,60 +77,66 @@ class YoubotIKSM(Behavior):
 
 
 		with _state_machine:
-			# x:30 y:40
-			OperatableStateMachine.add('Searching',
-										JointValuePub(target_pose=j_search),
-										transitions={'done': 'Open', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+			# x:74 y:31
+			OperatableStateMachine.add('Test',
+										self.use_behavior(TestSM, 'Test'),
+										transitions={'finished': 'Search', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:436 y:110
-			OperatableStateMachine.add('Trajectory',
-										IKSolverTrajectory(hertz=hertz, samples=samples, offset=offset, inclination_ee=inclination_ee),
-										transitions={'found': 'Check', 'unavailable': 'failed'},
-										autonomy={'found': Autonomy.Off, 'unavailable': Autonomy.Off},
-										remapping={'pose': 'output_value'})
-
-			# x:592 y:42
-			OperatableStateMachine.add('Check',
-										GripperStateEffort(width=width, threshold=th, time=time),
-										transitions={'done': 'IK_Plate', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:234 y:72
+			# x:511 y:27
 			OperatableStateMachine.add('pose',
 										PublishPoseStateIK(topic=pose_cube),
 										transitions={'received': 'Trajectory', 'unavailable': 'failed'},
 										autonomy={'received': Autonomy.Off, 'unavailable': Autonomy.Off},
 										remapping={'output_value': 'output_value', 'message': 'message'})
 
-			# x:104 y:179
-			OperatableStateMachine.add('Open',
-										GripperStateWidth(width=width_open),
-										transitions={'done': 'pose', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:737 y:132
+			# x:1022 y:137
 			OperatableStateMachine.add('IK_Plate',
 										IKSolver(target_pose=target_pose, inclination_ee=inclination_ee, rotation_ee=rotation_ee),
 										transitions={'found': 'Gripper_Plate_Release', 'unavailable': 'failed'},
 										autonomy={'found': Autonomy.Off, 'unavailable': Autonomy.Off})
 
-			# x:614 y:309
+			# x:993 y:295
 			OperatableStateMachine.add('Gripper_Plate_Release',
 										GripperStateWidth(width=width_open),
 										transitions={'done': 'IK_Plate_2', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:387 y:388
+			# x:1025 y:399
 			OperatableStateMachine.add('IK_Plate_2',
 										IKSolver(target_pose=target_pose_above, inclination_ee=inclination_ee, rotation_ee=rotation_ee),
-										transitions={'found': 'Searching_2', 'unavailable': 'failed'},
+										transitions={'found': 'Home', 'unavailable': 'failed'},
 										autonomy={'found': Autonomy.Off, 'unavailable': Autonomy.Off})
 
-			# x:115 y:411
-			OperatableStateMachine.add('Searching_2',
-										JointValuePub(target_pose=j_search),
+			# x:730 y:26
+			OperatableStateMachine.add('Trajectory',
+										IKSolverTrajectory(hertz=hertz, samples=samples, offset=offset, inclination_ee=inclination_ee),
+										transitions={'found': 'Check', 'unavailable': 'failed'},
+										autonomy={'found': Autonomy.Off, 'unavailable': Autonomy.Off},
+										remapping={'pose': 'output_value'})
+
+			# x:981 y:25
+			OperatableStateMachine.add('Check',
+										GripperStateEffort(width=width, threshold=th, time=time),
+										transitions={'done': 'IK_Plate', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:338 y:29
+			OperatableStateMachine.add('Open',
+										GripperStateWidth(width=width_open),
+										transitions={'done': 'pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:1024 y:482
+			OperatableStateMachine.add('Home',
+										JointValuePub(target_pose=j_ground),
 										transitions={'done': 'finished', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:205 y:28
+			OperatableStateMachine.add('Search',
+										JointValuePub(target_pose=j_search),
+										transitions={'done': 'Open', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 

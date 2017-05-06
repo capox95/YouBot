@@ -12,6 +12,7 @@
 
 
 	<!-- Contained Behaviors -->
+	<contains name="Test" />
 
 	<!-- Available Parameters -->
 
