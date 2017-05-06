@@ -7,6 +7,7 @@ using costmap_2d::LETHAL_OBSTACLE;
 using costmap_2d::NO_INFORMATION;
 using costmap_2d::INSCRIBED_INFLATED_OBSTACLE;
 
+
 float old_x_, old_y_;
 
 namespace simple_layer_namespace
@@ -45,9 +46,9 @@ void SimpleLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
   try
   {
      ros::Time now = ros::Time(0);
-     listener.waitForTransform("/map", "/box",
+     listener.waitForTransform("/odom", "/box",
                         now, ros::Duration(1.0));
-     listener.lookupTransform("/map", "/box",
+     listener.lookupTransform("/odom", "/box",
                         now, transform);
      old_x = transform.getOrigin().x();
      old_y = transform.getOrigin().y();
@@ -88,272 +89,66 @@ void SimpleLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int
     master_grid.setCost(mx, my, LETHAL_OBSTACLE);
   }
 
-  // First ring of light blue
-  //if(master_grid.worldToMap(mark_x_ + 0.05, mark_y_, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  // if(master_grid.worldToMap(mark_x_ - 0.05, mark_y_, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ , mark_y_ - 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ , mark_y_ + 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.05, mark_y_ - 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.05, mark_y_ - 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.05, mark_y_ + 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.05, mark_y_ + 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
+  float j = 0.0;
 
-  float j = 0;
+  // First & Second ring of light blue
+  j = 0.0;	
+  float l = 0.0;
+  int n = 0;
 
-  // Second ring of light blue
-  for (int i=0; i<2; i++)
+  for (int k=0; k < 2; k++)
   {
-  
-	  if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
+	  l = l + 0.05;
+	  n = 3 + k * 2;
+	  for (int i=0; i < n; i++)
+	  { 		
+	  	if(master_grid.worldToMap(mark_x_ + l, mark_y_ + l + j, mx, my)){
+		  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
+		}
+		if(master_grid.worldToMap(mark_x_ - l, mark_y_ + l + j, mx, my)){
+		  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
+		}
+		if(master_grid.worldToMap(mark_x_ + l + j, mark_y_ + l, mx, my)){
+		  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
+		}
+		if(master_grid.worldToMap(mark_x_ + l + j, mark_y_ - l, mx, my)){
+		  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
+		}
+		j = j - 0.05;
 	  }
-	   if(master_grid.worldToMap(mark_x_ - 0.05 - j, mark_y_, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ , mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ , mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.05 - j, mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.05 - j, mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_ + 0.00 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	   if(master_grid.worldToMap(mark_x_ - 0.05 - j, mark_y_ + 0.00 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.00 + j, mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.00 + j, mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_ - 0.00 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.05 - j, mark_y_ - 0.00 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.00 - j, mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.00 - j, mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-	  }
-	  j = abs(j) + 0.05;
+	  j = 0.0;
   }
 
-  // Third ring of light blue
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  // if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_ + 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_ - 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  // if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_ + 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_ - 0.05, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ , mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ , mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.05, mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.05, mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.05 , mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.05 , mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_ + 0.1, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  // if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_ + 0.1, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.1 , mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.1, mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ + 0.15, mark_y_ - 0.1, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.15, mark_y_ - 0.1, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.1, mark_y_ + 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
-  //if(master_grid.worldToMap(mark_x_ - 0.1, mark_y_ - 0.15, mx, my)){
-  //  master_grid.setCost(mx, my, INSCRIBED_INFLATED_OBSTACLE);
-  //}
+  j = 0.0;	
+  l = 0.10;
+  n = 0;
+  double factor = 1.0;
 
-  j = 0;
+  for (int k=0; k < 3; k++)
+  {
+	  l = l + 0.05;
+	  n = 7 + k * 2;
+	  for (int i=0; i < n; i++)
+	  { 		
+	  	if(master_grid.worldToMap(mark_x_ + l, mark_y_ + l + j, mx, my)){
+		  master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
+		}
+		if(master_grid.worldToMap(mark_x_ - l, mark_y_ + l + j, mx, my)){
+		  master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
+		}
+		if(master_grid.worldToMap(mark_x_ + l + j, mark_y_ + l, mx, my)){
+		  master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
+		}
+		if(master_grid.worldToMap(mark_x_ + l + j, mark_y_ - l, mx, my)){
+		  master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
+		}
+		j = j - 0.05;
+	  }
+	  factor = factor - 0.49;
+	  j = 0.0;
+  }
 
-  double factor;
-
-  // Third & Fourth & Fifth ring of red
-  for (int i=3; i>=0; i--)
-  { 
-	  if (i != 0)
-	  	factor = exp(-0.5 * 1/i);
-	  else 
-		factor = -1.0;
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	   if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ + 0.00 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ - 0.00 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	   if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ + 0.00 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ - 0.00 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ + 0.05 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ - 0.05 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ , mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ , mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.00 + j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.00 - j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	   if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.05 - j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	    if(master_grid.worldToMap(mark_x_ + 0.00 + j , mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.00 - j , mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.05 + j, mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.05 - j , mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ + 0.10 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	   if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ + 0.10 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.10 + j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.10 + j, mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ + 0.15 + j, mark_y_ - 0.10 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.15 - j, mark_y_ - 0.10 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.10 - j, mark_y_ + 0.15 + j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  if(master_grid.worldToMap(mark_x_ - 0.10 - j, mark_y_ - 0.15 - j, mx, my)){
-	    master_grid.setCost(mx, my, (INSCRIBED_INFLATED_OBSTACLE - 1) * factor);
-	  }
-	  j = abs(j) + 0.05;
-   }
+  
 
 }
 
