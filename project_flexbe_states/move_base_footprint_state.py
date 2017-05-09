@@ -14,9 +14,9 @@ Created on 11/19/2015
 @author: Spyros Maniatopoulos
 """
 
-class MoveBaseState(EventState):
+class MoveBaseFootprintState(EventState):
     """
-    Navigates a robot to a desired position and orientation using move_base.
+    Navigates a robot to a desired position and orientation respecting base_footprint using move_base.
 
     ># waypoint     Pose2D      Target waypoint for navigation.
 
@@ -27,7 +27,7 @@ class MoveBaseState(EventState):
     def __init__(self):
         """Constructor"""
 
-        super(MoveBaseState, self).__init__(outcomes = ['arrived', 'failed'],
+        super(MoveBaseFootprintState, self).__init__(outcomes = ['arrived', 'failed'],
                                             input_keys = ['waypoint'])
 
         self._action_topic = "/move_base"
@@ -73,7 +73,7 @@ class MoveBaseState(EventState):
         goal.target_pose.pose = Pose(position = pt,
                                      orientation = Quaternion(*qt))
 
-        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.frame_id = "base_footprint"
         # goal.target_pose.header.stamp.secs = 5.0
 
         # Send the action goal for execution
