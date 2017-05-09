@@ -7,12 +7,15 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from project_flexbe_states.publish_pose_state_IK import PublishPoseStateIK
+from project_flexbe_states.JointValues import JointValuePub
 from project_flexbe_states.IK_Solver import IKSolver
 from project_flexbe_states.GripperWidth import GripperStateWidth
 from project_flexbe_states.IK_Solver_Trajectory import IKSolverTrajectory
 from project_flexbe_states.GripperCheck import GripperStateEffort
-from project_flexbe_states.JointValues import JointValuePub
+from project_flexbe_states.publish_pose_state_IK import PublishPoseStateIK
+from project_flexbe_states.publish_pose_state import PublishPoseState
+from project_flexbe_states.publisher_pose2D import PublisherPose2D
+from project_flexbe_states.move_base_state import MoveBaseState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -53,7 +56,7 @@ class YoubotIK_ONLYSM(Behavior):
 		height_grasp = 30
 		j_search = [2.95, 1.5, -1.6, 3.5, 2.95]
 		width_open = 0.0115
-		j_ground = [2.95, 2.35, -1.6, 2.6, 2.95]
+		j_folded = [2.95, 0.2, -0.2, 2.0, 2.95]
 		hertz = 100
 		samples = 1000
 		offset = 35
@@ -65,6 +68,9 @@ class YoubotIK_ONLYSM(Behavior):
 		rotation_ee = 0
 		target_pose_above = [-0.025, 0.0, 0.155]
 		inclination_ee = 1.57
+		pose_2D = [1.0, -0.8, 0.0]
+		j_move_base = [2.95, 1.0, -1.0, 2.0, 2.95]
+		box_pose_ik = "/box_pose_ik"
 		# x:51 y:467, x:48 y:357
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
@@ -75,12 +81,11 @@ class YoubotIK_ONLYSM(Behavior):
 
 
 		with _state_machine:
-			# x:511 y:27
-			OperatableStateMachine.add('pose',
-										PublishPoseStateIK(topic=pose_cube),
-										transitions={'received': 'Trajectory', 'unavailable': 'failed'},
-										autonomy={'received': Autonomy.Off, 'unavailable': Autonomy.Off},
-										remapping={'output_value': 'output_value', 'message': 'message'})
+			# x:32 y:47
+			OperatableStateMachine.add('Joint_Move_Base',
+										JointValuePub(target_pose=j_move_base),
+										transitions={'done': 'Pose_2D', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:1022 y:137
 			OperatableStateMachine.add('IK_Plate',
@@ -121,7 +126,7 @@ class YoubotIK_ONLYSM(Behavior):
 
 			# x:1024 y:482
 			OperatableStateMachine.add('Home',
-										JointValuePub(target_pose=j_ground),
+										JointValuePub(target_pose=j_folded),
 										transitions={'done': 'finished', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -130,6 +135,41 @@ class YoubotIK_ONLYSM(Behavior):
 										JointValuePub(target_pose=j_search),
 										transitions={'done': 'Open', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:511 y:27
+			OperatableStateMachine.add('pose',
+										PublishPoseStateIK(topic=pose_cube),
+										transitions={'received': 'Trajectory', 'unavailable': 'failed'},
+										autonomy={'received': Autonomy.Off, 'unavailable': Autonomy.Off},
+										remapping={'output_value': 'output_value', 'message': 'message'})
+
+			# x:352 y:228
+			OperatableStateMachine.add('Pose_Cube',
+										PublishPoseState(topic=box_pose_ik),
+										transitions={'received': 'Move2', 'unavailable': 'failed'},
+										autonomy={'received': Autonomy.Off, 'unavailable': Autonomy.Off},
+										remapping={'output_value': 'output_value', 'message': 'message'})
+
+			# x:41 y:206
+			OperatableStateMachine.add('Pose_2D',
+										PublisherPose2D(target_pose=pose_2D),
+										transitions={'done': 'Move1'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'output_value': 'output_value'})
+
+			# x:210 y:242
+			OperatableStateMachine.add('Move1',
+										MoveBaseState(),
+										transitions={'arrived': 'Pose_Cube', 'failed': 'failed'},
+										autonomy={'arrived': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'waypoint': 'output_value'})
+
+			# x:218 y:129
+			OperatableStateMachine.add('Move2',
+										MoveBaseState(),
+										transitions={'arrived': 'Search', 'failed': 'failed'},
+										autonomy={'arrived': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'waypoint': 'output_value'})
 
 
 		return _state_machine

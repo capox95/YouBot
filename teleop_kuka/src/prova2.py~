@@ -1,0 +1,53 @@
+#!/usr/bin/python
+
+#import the necessary modules
+import cv2
+import numpy as np
+import math
+
+objp = np.array([[0, 0, 0],[1, 0, 0],[0, 1, 0],[1, 1, 0]], np.float32)
+
+mtx = np.matrix([[532.80990766, 0.0, 342.49522241],
+      [0.0, 532.93344824, 233.88792572],
+      [0.0, 0.0, 1.0]], np.float32)
+
+dist =  np.array([ -2.81325825e-01,   2.91151879e-02,   1.21234424e-03,  -1.40823842e-04, 1.54861064e-01], np.float32)
+
+
+
+filename = 'square_45.png'
+img = cv2.imread(filename)
+gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+imgray = cv2.medianBlur(gray, 11)
+thresh = cv2.Canny(gray,75,200)
+
+contours, hierarchy = cv2.findContours(thresh.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+cnts = sorted(contours, key = cv2.contourArea, reverse = True)
+
+for i in range(0,len(cnts)):
+        sel_cnts = sorted(contours, key = cv2.contourArea, reverse = True)[i]
+
+        area = cv2.contourArea(sel_cnts)
+	if area < 1000:
+            continue
+
+        # get orientation angle and center coord
+        center, axis,angle = cv2.fitEllipse(sel_cnts)
+	print(center, axis, angle)
+        hyp = 100  # length of the orientation line
+
+        # Find out coordinates of 2nd point if given length of line and center coord 
+        linex = int(center[0]) + int(math.sin(math.radians(angle))*hyp)
+        liney = int(center[1]) - int(math.cos(math.radians(angle))*hyp)
+
+        # Draw orienation
+        cv2.line(img, (int(center[0]),int(center[1])), (linex, liney), (0,0,255),5)             
+        cv2.circle(img, (int(center[0]), int(center[1])), 10, (255,0,0), -1)
+
+#cv2.imshow('thresh', thresh)
+cv2.imshow('contours', img)
+
+if cv2.waitKey(0) & 0xff == 27:
+    cv2.destroyAllWindows()

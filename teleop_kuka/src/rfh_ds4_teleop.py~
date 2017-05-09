@@ -1,0 +1,55 @@
+import sys
+import rospy
+import numpy
+from sensor_msgs.msg import Joy
+from geometry_msgs.msg import Twist
+from p2os_msgs.msg import MotorState
+
+
+class ds4_teleop:
+
+    def __init__(self):
+        rospy.Subscriber('/joy', Joy, self.processJoystick)
+
+        # publishers
+        self.velPub = rospy.Publisher("/cmd_vel", Twist, queue_size=5)
+       
+
+
+        self.max_lin_vel = 0.4
+        self.max_ang_vel = 0.6
+
+    def processJoystick(self, joyMsg):
+        state = MotorState()
+        state.state = 4
+        
+        joyMsg.axes = numpy.array(joyMsg.axes)
+        left_axis = joyMsg.axes[[0,1]]
+        right_axis = joyMsg.axes[[2,5]]
+        l2_axis = joyMsg.axes[[3]]
+        r2_axis = joyMsg.axes[[4]]
+        square, x, circle, triangle, l1, r1, l2, r2, share, options, l3, r3, ps_button, touch_button = [button == 1 for button in joyMsg.buttons]
+        left_dpad = joyMsg.axes[6] == 1
+        right_dpad = joyMsg.axes[6] == -1
+        up_dpad = joyMsg.axes[7] == 1
+        down_dpad = joyMsg.axes[7] == -1
+
+        vel = Twist()
+        vel.linear.x = self.max_lin_vel * left_axis[1]
+
+        if x:
+            vel.linear.x = vel.linear.x / 2
+
+        vel.angular.z = self.max_ang_vel * left_axis[0]
+
+        self.velPub.publish(vel)
+
+
+def main(args):
+    ds4_teleop()
+    rospy.init_node('rfh_ds4_teleop')
+    rospy.spin()
+
+
+if __name__ == "__main__":
+main(sys.argv)

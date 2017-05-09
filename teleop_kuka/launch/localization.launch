@@ -1,0 +1,9 @@
+<launch>
+
+	<include file="$(find teleop_kuka)/launch/lsm.launch"/>
+	<include file="$(find amcl)/examples/amcl_omni.launch" />
+        <node pkg="map_server" type="map_server" name="map_server" args="/home/alessio/rover_ws/maps/map.yaml" />
+	<!--<include file="$(find youbot_navigation_local)/launch/move_base_local.launch"/>-->
+        <node name="rviz" pkg="rviz" type="rviz"/>
+
+</launch>

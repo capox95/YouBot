@@ -7,13 +7,13 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from flexbe_states.JointValues import JointValuePub
-from flexbe_states.publish_pose_state_IK import PublishPoseStateIK
-from flexbe_states.IK_Solver import IKSolver
-from flexbe_states.GripperWidth import GripperStateWidth
-from flexbe_states.IK_Solver_Trajectory import IKSolverTrajectory
-from flexbe_states.GripperCheck import GripperStateEffort
-from flexbe_behaviors.test_sm import TestSM
+from project_flexbe_states.publish_pose_state_IK import PublishPoseStateIK
+from project_flexbe_states.IK_Solver import IKSolver
+from project_flexbe_states.GripperWidth import GripperStateWidth
+from project_flexbe_states.IK_Solver_Trajectory import IKSolverTrajectory
+from project_flexbe_states.GripperCheck import GripperStateEffort
+from project_flexbe_states.JointValues import JointValuePub
+from flexbe_behaviors.move_base_sm import Move_BaseSM
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -37,7 +37,7 @@ class YoubotIKSM(Behavior):
 		# parameters of this behavior
 
 		# references to used behaviors
-		self.add_behavior(TestSM, 'Test')
+		self.add_behavior(Move_BaseSM, 'Move_Base')
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
@@ -77,18 +77,11 @@ class YoubotIKSM(Behavior):
 
 
 		with _state_machine:
-			# x:74 y:31
-			OperatableStateMachine.add('Test',
-										self.use_behavior(TestSM, 'Test'),
+			# x:30 y:40
+			OperatableStateMachine.add('Move_Base',
+										self.use_behavior(Move_BaseSM, 'Move_Base'),
 										transitions={'finished': 'Search', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
-
-			# x:511 y:27
-			OperatableStateMachine.add('pose',
-										PublishPoseStateIK(topic=pose_cube),
-										transitions={'received': 'Trajectory', 'unavailable': 'failed'},
-										autonomy={'received': Autonomy.Off, 'unavailable': Autonomy.Off},
-										remapping={'output_value': 'output_value', 'message': 'message'})
 
 			# x:1022 y:137
 			OperatableStateMachine.add('IK_Plate',
@@ -138,6 +131,13 @@ class YoubotIKSM(Behavior):
 										JointValuePub(target_pose=j_search),
 										transitions={'done': 'Open', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:511 y:27
+			OperatableStateMachine.add('pose',
+										PublishPoseStateIK(topic=pose_cube),
+										transitions={'received': 'Trajectory', 'unavailable': 'failed'},
+										autonomy={'received': Autonomy.Off, 'unavailable': Autonomy.Off},
+										remapping={'output_value': 'output_value', 'message': 'message'})
 
 
 		return _state_machine

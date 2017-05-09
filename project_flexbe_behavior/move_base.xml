@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Move_Base">
+
+	<executable package_path="flexbe_behaviors.move_base_sm" class="Move_BaseSM" />
+	<tagstring>Cube</tagstring>
+	<author>Matteo Pantano</author>
+	<date>Thu Apr 20 2017</date>
+	<description>
+		Testing of new behavior for searching cube in the map.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

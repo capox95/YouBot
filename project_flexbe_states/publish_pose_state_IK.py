@@ -9,22 +9,22 @@ from flexbe_core.proxy import ProxySubscriberCached
 
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose2D, Pose
 # [/MANUAL_IMPORT]
 
 '''
 Created on 30.03.2017
 
-@author: Matteo Pantano & Alessio Caporali
+@author: Matteo Pantano
 '''
 
 class PublishPoseStateIK(EventState):
 	"""
-	Publishes a pose for the IK_Solver.
+	Publishes a pose from userdata so that it can be displayed in rviz.
 
 	-- topic 		string 		Topic to which the pose will be read.
 
-	#> output_joint_ik	object		The pose message
+	#> output_value		object		The 2D pose message.
 	#> message		object		Latest message on the given topic of the respective type.
 
 	<= received 				Message has been received and stored in userdata.
@@ -63,7 +63,7 @@ class PublishPoseStateIK(EventState):
 			userdata.message = self._sub.get_last_msg(self._topic)
 			# assign data inside to the topic to local variable 
 			data = self._sub.get_last_msg(self._topic)
-			print data.position.x
+			#print data.position.x
 			# go to pose of cube
 			target_pose = Pose(data.position, data.orientation)
 			userdata.output_value = target_pose
@@ -93,4 +93,7 @@ class PublishPoseStateIK(EventState):
 		package = __import__(msg_module, fromlist=[msg_module])
 		clsmembers = inspect.getmembers(package, lambda member: inspect.isclass(member) and member.__module__.endswith(msg_import[1]))
 		return clsmembers[0][1]
+
+	def on_exit(self, userdata):
+		Logger.loginfo('Exiting Pub Pose State IK')
 

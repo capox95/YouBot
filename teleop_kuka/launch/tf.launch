@@ -1,0 +1,17 @@
+<launch>
+    <node pkg="tf" type="static_transform_publisher" name="end_effector_tf" args="0.0075 -0.003 0.146 0 0 0 arm_link_4 end_effector 100" />
+
+   <node pkg="teleop_kuka" name="tf_listener_end_effector" type="tf_listener_end_effector.py"/>
+
+	<!--node pkg="teleop_kuka" name="tf_listener_box" type="tf_listener_box.py" />
+	<node pkg="teleop_kuka" name="tf_listener_move_base" type="tf_listener_move_base.py" />
+	<node pkg="teleop_kuka" name="tf_listener_home" type="tf_listener_home.py" /-->
+
+
+	<!--node pkg="teleop_kuka" name="corner_vrep" type="corner_vrep.py" /-->
+
+
+	<!--node pkg="tf" type="static_transform_publisher" name="tf_pippo_ok" args="0 0 0 0 1.57 0 pippo pippo_girato 100" />
+	<node pkg="tf" type="static_transform_publisher" name="tf_2" args="0 0 0 0 0 0 world_ok base_footprint 100" /-->
+
+</launch>

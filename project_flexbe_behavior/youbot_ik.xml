@@ -12,7 +12,7 @@
 
 
 	<!-- Contained Behaviors -->
-	<contains name="Test" />
+	<contains name="Move_Base" />
 
 	<!-- Available Parameters -->
 
